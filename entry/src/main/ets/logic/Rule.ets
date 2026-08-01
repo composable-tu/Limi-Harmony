@@ -30,6 +30,72 @@ export class RuleIds {
   static readonly INCOGNITO_MODE: string = 'incognito_mode';
 }
 
+const URL_SCHEME_REGEX: RegExp = /^[a-zA-Z][a-zA-Z0-9+.-]*$/;
+
+/**
+ * 判断链接是否自带协议头。
+ * candidate 须符合 RFC 3986 scheme 语法（字母开头，仅含字母数字 +.−）。
+ * 排除 host:port 形式（如 a.com:8080、localhost:3000、intranet:8080）：
+ * - candidate 含 "."（域名形态）
+ * - ":" 后为纯数字（端口号形态）
+ */
+export function hasUrlScheme(urlString: string): boolean {
+  const colonIndex = urlString.indexOf(':');
+  if (colonIndex <= 0) {
+    return false;
+  }
+  const candidate = urlString.substring(0, colonIndex);
+  if (!URL_SCHEME_REGEX.test(candidate)) {
+    return false;
+  }
+  // 排除域名形态的 host:port（如 a.com:8080）
+  if (candidate.indexOf('.') >= 0) {
+    return false;
+  }
+  // 排除端口号形态的 host:port（如 localhost:3000、intranet:8080）
+  const afterColon = urlString.substring(colonIndex + 1);
+  if (isDigitsOnly(afterColon)) {
+    return false;
+  }
+  return true;
+}
+
+function isDigitsOnly(s: string): boolean {
+  if (s.length === 0) {
+    return false;
+  }
+  for (let i = 0; i < s.length; i++) {
+    const code = s.charCodeAt(i);
+    if (code < 48 || code > 57) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * 为不带协议的链接补全 http://，确保 HTTP 请求与 URL 解析正常工作
+ */
+export function ensureUrlScheme(urlString: string): string {
+  return hasUrlScheme(urlString) ? urlString : 'http://' + urlString;
+}
+
+/**
+ * 保持用户链接原样式：原链接不带协议头时，去掉补全的 http(s):// 前缀
+ */
+export function applyOriginalSchemeStyle(result: string, hadScheme: boolean): string {
+  if (hadScheme) {
+    return result;
+  }
+  if (result.startsWith('https://')) {
+    return result.substring('https://'.length);
+  }
+  if (result.startsWith('http://')) {
+    return result.substring('http://'.length);
+  }
+  return result;
+}
+
 export async function processUrl(urlString: string): Promise<string> {
   const ruleConfig = new RuleConfig();
   ruleConfig.UTMParams = PreferencesHelper.getBoolean(RuleIds.UTM_PARAMS, true);
@@ -41,7 +107,8 @@ export async function processUrl(urlString: string): Promise<string> {
   ruleConfig.braveQueryFilter = PreferencesHelper.getBoolean(RuleIds.BRAVE_QUERY_FILTER, false);
   ruleConfig.clearUrls = PreferencesHelper.getBoolean(RuleIds.CLEAR_URLS, false);
 
-  let finalUrl = urlString;
+  const hadScheme = hasUrlScheme(urlString);
+  let finalUrl = ensureUrlScheme(urlString);
 
   // 第一层：去重定向跳转（Brave Debounce）
   if (ruleConfig.braveDebounce) {
@@ -101,7 +168,7 @@ export async function processUrl(urlString: string): Promise<string> {
   if (finalUrl.length === 0) {
     return urlString;
   }
-  return finalUrl;
+  return applyOriginalSchemeStyle(finalUrl, hadScheme);
 }
 
 function isInHostList(host: string, hosts: string[]): boolean {
