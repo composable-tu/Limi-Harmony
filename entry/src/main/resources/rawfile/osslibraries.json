@@ -22,7 +22,7 @@
     },
     {
       "uniqueId": "@ohos/hypium",
-      "artifactVersion": "1.0.25",
+      "artifactVersion": "1.0.28",
       "name": "@ohos/hypium",
       "description": "A unit test framework for OpenHarmony application",
       "website": "https://gitee.com/openharmony/testfwk_arkxtest",
