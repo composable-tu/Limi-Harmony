@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "osslibraries-usage": {
+      "source": "composable-tu/osslibraries",
+      "sourceType": "github",
+      "skillPath": "skills/osslibraries-usage/SKILL.md",
+      "computedHash": "527711b05480b7451e42a0ef406996969d9a835343136d0b74f5b9ca01a1f53b"
+    }
+  }
+}

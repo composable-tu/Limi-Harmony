@@ -4,11 +4,14 @@ import { ListGroupSection, NavigationItem, PreferenceGroup, PreferenceItem, Swit
 import { bundleManager, common } from '@kit.AbilityKit';
 import { BusinessError } from '@kit.BasicServicesKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
+import 'osslibraries_ui/src/main/ets/pages/OSSLibrariesLicenseListPage';
+import 'osslibraries_ui/src/main/ets/pages/OSSLibrariesLicenseDetailPage';
 
 export enum SettingKind {
   INCOGNITO = 'incognito',
   ABOUT_LIMI = 'about_limi',
   SOURCE_REPO = 'source_repo',
+  OPEN_SOURCE_LICENSE = 'open_source_license',
 }
 
 const SOURCE_REPO_URL: string = 'https://github.com/limi-app/Limi-Harmony';
@@ -33,6 +36,7 @@ export struct SettingPage {
     const aboutItems: SettingItem[] = [
       { kind: SettingKind.ABOUT_LIMI },
       { kind: SettingKind.SOURCE_REPO },
+      { kind: SettingKind.OPEN_SOURCE_LICENSE },
     ];
     return [
       new ListGroupSection($r('app.string.general'), generalItems),
@@ -68,6 +72,13 @@ export struct SettingPage {
           this.openSourceRepo();
         },
       })
+    } else if ((item as SettingItem).kind === SettingKind.OPEN_SOURCE_LICENSE) {
+      NavigationItem({
+        title: $r('app.string.open_source_license'),
+        onNavClick: () => {
+          this.openOpenSourceLicense();
+        },
+      })
     }
   }
 
@@ -91,5 +102,9 @@ export struct SettingPage {
       const err = e as BusinessError;
       hilog.error(0x0001, 'SettingPage', `openSourceRepo failed: code=${err.code}, message=${err.message}`);
     }
+  }
+
+  openOpenSourceLicense(): void {
+    this.getUIContext().getRouter().pushNamedRoute({ name: 'OSSLibrariesLicenseListPage' });
   }
 }

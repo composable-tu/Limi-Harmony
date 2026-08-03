@@ -5,6 +5,9 @@
   "main": "",
   "author": "",
   "license": "",
-  "dependencies": {}
+  "dependencies": {
+    "osslibraries": "^0.0.1",
+    "osslibraries_ui": "^0.0.1"
+  }
 }
 
